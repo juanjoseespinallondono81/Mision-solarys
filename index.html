@@ -219,10 +219,39 @@ button.chip:active,.btn:active{transform:translate(2px,2px); box-shadow:none;}
 .shopItem,.dexItem{border-radius:0; transition:transform .1s;}
 .shopItem:hover,.dexItem:hover{transform:translateX(4px); border-color:var(--gold);}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;}}
+
+/* ============ INTRO / PRESS START ============ */
+#intro{position:fixed; inset:0; z-index:90; background:#1b0f4a; cursor:pointer; transition:opacity .6s; overflow:hidden;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;}
+#intro.out{opacity:0; pointer-events:none;}
+#introCv{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; image-rendering:pixelated;}
+#intro::after{content:""; position:absolute; inset:0; pointer-events:none;
+  background:repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px), radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.55));}
+#intro .ui{position:relative; z-index:2; padding:0 14px; margin-top:-8vh;}
+#intro .pre{font-size:10px; color:#ffe08a; letter-spacing:3px; margin-bottom:14px; text-shadow:2px 2px 0 #7a2a8a;}
+#intro .logo{font-size:clamp(20px,5.4vw,46px); line-height:1.35; color:#ffe08a;
+  text-shadow:0 3px 0 #ff9a3d, 0 6px 0 #c2417a, 0 9px 0 #3a1a6e, 0 0 26px rgba(255,224,138,.7); animation:bob 2.2s ease-in-out infinite;}
+#intro .logo b{color:#3ec6e0; text-shadow:0 3px 0 #0b6a8a, 0 6px 0 #083a58, 0 9px 0 #04202f, 0 0 26px rgba(62,198,224,.8);}
+#intro .sub{margin-top:22px; font-size:clamp(8px,1.8vw,13px); color:#fff; text-shadow:2px 2px 0 #1b0f4a; line-height:1.9;}
+#intro .start{margin-top:6vh; font-size:clamp(16px,3.4vw,26px); color:#fff; text-shadow:3px 3px 0 #c2417a, 0 0 18px #fff; animation:blinkT 1s steps(2) infinite;}
+#intro .hint{margin-top:14px; font-size:8px; color:#dff2ef; text-shadow:1px 1px 0 #000; opacity:.85;}
+#intro .cr{position:absolute; bottom:10px; left:0; right:0; z-index:2; font-size:7px; color:#ffe08a; text-shadow:1px 1px 0 #000;}
+@keyframes blinkT{50%{opacity:0}}
 </style>
 </head>
 <body>
 
+<div id="intro">
+  <canvas id="introCv" width="320" height="180"></canvas>
+  <div class="ui">
+    <div class="pre">★ ★ ★ &nbsp;BAJO CAUCA, ANTIOQUIA&nbsp; ★ ★ ★</div>
+    <div class="logo">CAUCA<br><b>GUARDIANS</b></div>
+    <div class="sub">THE RIVER'S ECHO<br>LOS GUARDIANES DEL RÍO CAUCA</div>
+    <div class="start">PRESS START</div>
+    <div class="hint">PRESS ANY KEY · CLICK · TAP</div>
+  </div>
+  <div class="cr">© 2026 · 1 PLAYER · PURIFY THE RIVER</div>
+</div>
 <div id="fx"></div>
 <div id="topbar">
   <div class="title">CAUCA GUARDIANS<br><span id="lvlName" style="color:var(--dim);font-size:8px;"></span></div>
@@ -344,6 +373,54 @@ button.chip:active,.btn:active{transform:translate(2px,2px); box-shadow:none;}
 for(let i=0;i<26;i++){const e=document.createElement("i"); if(i%4===0)e.className="f";
  e.style.left=Math.random()*100+"%"; e.style.animationDuration=(7+Math.random()*12)+"s";
  e.style.animationDelay=(-Math.random()*15)+"s"; const z=4+Math.random()*6; e.style.width=e.style.height=z+"px"; fx.appendChild(e);}})();
+</script>
+<script>
+/* ===== INTRO ANIMADA (canvas retro 320x180, sin dependencias) ===== */
+(function(){
+const cv=document.getElementById("introCv"), c=cv.getContext("2d"), intro=document.getElementById("intro");
+const W=320,H=180,HZ=100; let raf, done=false;
+const R=(x,y,w,h,col)=>{c.fillStyle=col;c.fillRect(Math.round(x),Math.round(y),w,h);};
+const sky=["#1b0f4a","#3a1a6e","#7a2a8a","#c2417a","#ff6b5e","#ff9a3d","#ffe08a"];
+const water=["#12a4c4","#0f8db0","#0b6f96","#095782","#073f66"];
+const stars=Array.from({length:46},(_,i)=>[(i*67)%W,(i*29)%56,i]);
+function tree(x,y,s,t){const sw=Math.round(Math.sin(t*1.5+x)*1);
+ R(x,y-14*s,3*s,14*s,"#3b1f2b");
+ for(let i=0;i<4;i++){const w=(10-i*2)*s; R(x+1.5*s-w/2+sw*(i>1),y-14*s-i*5*s,w,5*s,i%2?"#1fa34a":"#2ed06a");}}
+function fish(t,off){const p=((t*.35+off)%1); if(p>.6) return; const q=p/.6, x=40+off*220+q*60, y=HZ+36-Math.sin(q*Math.PI)*34;
+ R(x,y,7,3,"#ff9a3d");R(x+7,y-1,2,5,"#ffe08a");R(x+1,y+1,2,1,"#fff");
+ if(q<.15||q>.85){R(x-3,HZ+37,14,1,"#dff2ef");R(x-6,HZ+39,20,1,"#7fe3f5");}}
+function bird(t,i){const x=((t*16+i*90)%(W+30))-15,y=24+i*13+Math.sin(t+i)*3,f=Math.floor(t*6+i)%2;
+ R(x,y+f,3,1,"#1b0f4a");R(x+3,y+1-f,3,1,"#1b0f4a");R(x+6,y+f,3,1,"#1b0f4a");}
+function frame(ms){
+ const t=ms/1000;
+ for(let i=0;i<7;i++) R(0,i*(HZ/7|0),W,(HZ/7|0)+1,sky[i]);
+ stars.forEach(s=>{ if(Math.floor(t*2+s[2])%4) R(s[0],s[1],1,1,"#fff"); });
+ /* sol con franjas */
+ for(let y=-28;y<28;y++){ if(y>2&&((y+40)%5)<y/9) continue; const w=Math.floor(Math.sqrt(784-y*y)); R(160-w,HZ-14+y,w*2,1,"#ffe08a"); }
+ /* montañas parallax */
+ for(let x=0;x<W;x++){const a=Math.sin((x+t*3)*.035)*14+Math.sin((x+t*3)*.11+1)*6, h=Math.round(HZ-30-a); R(x,h,1,HZ-h,"#5a2a7a");
+  const b=Math.sin((x+t*7)*.05+2)*10+Math.sin((x+t*7)*.14)*4, g=Math.round(HZ-14-b); R(x,g,1,HZ-g,"#0f4a5a");}
+ /* río */
+ for(let i=0;i<5;i++) R(0,HZ+i*16,W,16,water[i]);
+ for(let y=HZ+2;y<H;y+=4){const off=(t*(10+y*.1)+y*7)%40; for(let x=-40;x<W;x+=40){R(x+off,y,10+(y-HZ)/8,1,y%8?"#5fd6ee":"#a7f0ff");}}
+ for(let y=HZ+1;y<H;y+=2){const w=Math.round(30-(y-HZ)*.25+Math.sin(t*3+y)*6); if(w>0) R(160-w/2,y,w,1,"#ffe08a");}
+ /* orillas */
+ R(0,HZ-4,W,4,"#0f3a2a"); tree(18,HZ+2,2,t); tree(46,HZ+1,1,t); tree(292,HZ+2,2,t); tree(268,HZ+1,1,t);
+ R(0,H-10,64,10,"#0f3a2a");R(W-64,H-10,64,10,"#0f3a2a"); tree(14,H-4,3,t); tree(304,H-4,3,t);
+ /* canoa */
+ const bx=((t*7)%(W+60))-30, by=HZ+18+Math.round(Math.sin(t*2)); R(bx,by,20,3,"#7a3b1e");R(bx+2,by+3,16,1,"#4a220e");R(bx+9,by-6,1,6,"#3b1f2b");R(bx+10,by-6,6,4,"#ff6b5e");
+ [0,.4,.75].forEach(o=>fish(t,o)); [0,1,2].forEach(i=>bird(t,i));
+ /* luciérnagas + burbujas */
+ for(let i=0;i<16;i++){const x=(i*53+Math.sin(t+i)*14+W)%W,y=HZ-10+((i*31)%50)+Math.cos(t*1.3+i)*6; if(Math.sin(t*3+i)>-.2) R(x,y,2,2,i%3?"#ffe08a":"#9fce3d");}
+ for(let i=0;i<10;i++){const x=(i*37)%W,y=H-((t*14+i*23)%80); R(x,y,2,2,"#dff2ef");}
+ raf=requestAnimationFrame(frame);
+}
+raf=requestAnimationFrame(frame);
+function go(e){ if(done) return; if(e&&e.type==="keydown"&&["Shift","Control","Alt","Meta"].includes(e.key)) return;
+ done=true; intro.classList.add("out"); window.removeEventListener("keydown",go);
+ setTimeout(()=>{cancelAnimationFrame(raf); intro.style.display="none";},650); if(e) e.preventDefault&&e.preventDefault(); }
+intro.addEventListener("pointerdown",go); window.addEventListener("keydown",go);
+})();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.60.0/phaser.min.js"></script>
 <script>
